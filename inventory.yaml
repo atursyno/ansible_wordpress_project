@@ -1,0 +1,8 @@
+---
+all: # all hosts defined in this inventory
+    hosts: # ungrouped hosts
+    children:
+      app: #group name
+        hosts:
+          webserver: # host name
+            ansible_host: 10.108.0.4
