@@ -1,0 +1,11 @@
+---
+- name: Update Packages
+  hosts: webserver
+  gather_facts: yes
+  become: yes
+  tasks:
+    - name: Update Packages
+      when: ansible_facts['pkg_mgr'] == "yum"
+      yum:
+        name: '*'
+        state: latest
