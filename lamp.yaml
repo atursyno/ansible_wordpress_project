@@ -1,18 +1,19 @@
 ---
-- name: Install Lamp
-  hosts: webserver
+- name: Setup LAMP and Install Wordpress
+  hosts: all
+  gather_facts: "{{ facts }}"
   vars_files:
     - vars_lamp.yaml
-  become: true #sudo
-  gather_facts: "{{ facts }}"
+  become: yes # sudo
   tasks:
-    - block:
-        - name: Install apache on CentOS
+    - name: Setup - webserver
+      block: 
+        - name: Install Apache
           when: ansible_facts['pkg_mgr'] == "dnf"
           dnf:
             name: "{{ apache_package_name }}"
             state: latest
-
+        
         - name: Start & Enable Apache
           when: ansible_facts['service_mgr'] == "systemd"
           systemd:
@@ -20,24 +21,23 @@
             state: started
             enabled: yes
 
-        - name: Install PHP & Dependencies
+        - name: Install PHP and Dependencies
           when: ansible_facts['pkg_mgr'] == "dnf"
           dnf:
             name: "{{ php_packages }}"
             state: latest
-
-        - name: Install Wordpress
+        
+        - name: Install WordPress
           unarchive:
             src: https://wordpress.org/latest.tar.gz
             dest: /tmp/
             remote_src: yes
-
+        
         - name: Copy Wordpress files to /var/www/html/
           copy:
             src: /tmp/wordpress/
             dest: /var/www/html/
             remote_src: yes
-
 
         - name: Change ownership of /var/www/html
           file:
@@ -47,21 +47,32 @@
             owner: apache
             group: apache
           notify: Restart Apache
-
-        - name:
-          systemd:
-            state: restarted
-            name: httpd
-
-
+  
       when:
         - ansible_facts['distribution'] == "CentOS"
         - ansible_facts['distribution_major_version'] == "8"
+      
+    - name: Setup - database
+      block:
+        - name: Install MariaDB
+          when: ansible_facts['pkg_mgr'] == "apt"
+          apt:
+            update_cache: yes
+            name: "{{ mariadb_package_name }}"
+            state: latest
 
-  
+        - name: Start & Enable MariaDB
+          when: ansible_facts['service_mgr'] == "systemd"
+          systemd:
+            name: "{{ mariadb_service_name }}"
+            state: started
+            enabled: yes
+      when:
+        - ansible_facts['distribution'] == "Ubuntu"
+        - ansible_facts['distribution_major_version'] == "20" 
   handlers:
     - name: Restart Apache
+      when: ansible_facts['service_mgr'] == "systemd"
       systemd:
         name: "{{ apache_service_name }}"
         state: restarted
-    

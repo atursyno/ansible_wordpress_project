@@ -14,6 +14,21 @@
         state: present
         key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
 
+    - name: Add user ansible - database
+      when: ansible_facts['distribution'] == "Ubuntu" 
+      user:
+        name: ansible
+        uid: 2500
+        groups: ["sudo"]
+        shell: /bin/bash
+        password: "$6$myrandomsalt$5VKlM4Scif91xSIkCTPavm2tLRtN3IBXh5XlCrVcsYki97nDDY3cn3sebp1WfpucpfHIteZS6ycTSzT7iqLcV/"
+
+    - name: Add public key 
+      authorized_key: 
+        user: ansible
+        state: present
+        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
 
 
 

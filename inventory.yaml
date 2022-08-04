@@ -6,3 +6,7 @@ all: # all hosts defined in this inventory
         hosts:
           webserver: # host name
             ansible_host: 10.108.0.4
+      db: # group name
+        hosts:
+          database: # host name
+            ansible_host: 10.108.0.5
