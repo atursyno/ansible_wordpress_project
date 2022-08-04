@@ -1,11 +1,11 @@
 ---
-- name: Update Packages
+- name: update all packages
   hosts: webserver
   gather_facts: yes
-  become: yes
+  become: true
   tasks:
-    - name: Update Packages
-      when: ansible_facts['pkg_mgr'] == "yum"
-      yum:
-        name: '*'
+    - name: update packages
+      when: ansible_facts['pkg_mgr'] == "dnf"
+      dnf:
+        name: "*"
         state: latest
